@@ -5,7 +5,8 @@
             [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string]$Name,
             [ValidateSet("MINUTE", "HOURLY", "DAILY", "WEEKLY", "ONSTART", "ONLOGON")][string]$IntervalModifier = "MINUTE",
             [ValidateSet("PRESENT", "ABSENT")][string]$Ensure = "PRESENT",
-            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][int]$Interval = 5
+            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][int]$Interval = 5,
+            [ValidatePattern("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")][string]$StartTime
         )
         @{
             ExecutablePath = $ExecutablePath;
@@ -24,7 +25,8 @@
             [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string]$Name,
             [ValidateSet("MINUTE", "HOURLY", "DAILY", "WEEKLY", "ONSTART", "ONLOGON")][string]$IntervalModifier = "MINUTE",
             [ValidateSet("PRESENT", "ABSENT")][string]$Ensure = "PRESENT",
-            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][int]$Interval = 5
+            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][int]$Interval = 5,
+            [ValidatePattern("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")][string]$StartTime
         )
         $tasks = Get-ScheduledTask
 
@@ -44,7 +46,8 @@
             [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string]$Name,
             [ValidateSet("MINUTE", "HOURLY", "DAILY", "WEEKLY", "ONSTART", "ONLOGON")][string]$IntervalModifier = "MINUTE",
             [ValidateSet("PRESENT", "ABSENT")][string]$Ensure = "PRESENT",
-            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][int]$Interval = 5
+            [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][int]$Interval = 5,
+            [ValidatePattern("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")][string]$StartTime
         )
         $tasks = Get-ScheduledTask
 
@@ -64,7 +67,11 @@
             if($tasks.TaskName -notcontains $Name) {
                 Write-Verbose "Creating New Scheduled Task $Name $ExecutablePath $Params"
                 try{
-                    schtasks.exe /create /tn $Name /tr $($ExecutablePath, $Params -join ' ') /sc $IntervalModifier /mo $Interval /ru system /f
+                    if ($StartTime)
+                    {
+                        $ST = "/ST $StartTime "
+                    }
+                    schtasks.exe /create /tn $Name /tr $($ExecutablePath, $Params -join ' ') /sc $IntervalModifier /mo $Interval /ru system $ST/f
                 }
                 catch {
                     Write-EventLog -LogName DevOps -Source RS_rsScheduledTask -EntryType Information -EventId 1000 -Message "Failed to create scheduled task $Name `n $_.Exception.Message"
