@@ -71,7 +71,7 @@
                     {
                         $ST = "/ST $StartTime "
                     }
-                    schtasks.exe /create /tn $Name /tr $($ExecutablePath, $Params -join ' ') /sc $IntervalModifier /mo $Interval /ru system $ST/f
+                    schtasks.exe /create /tn $Name /tr $($ExecutablePath, $Params -join ' ') /sc $IntervalModifier /mo $Interval /ru system $ST /f
                 }
                 catch {
                     Write-EventLog -LogName DevOps -Source RS_rsScheduledTask -EntryType Information -EventId 1000 -Message "Failed to create scheduled task $Name `n $_.Exception.Message"
